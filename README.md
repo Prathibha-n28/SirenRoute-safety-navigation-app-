@@ -1,117 +1,235 @@
-# 🚨 SirenRoute: Real-Time Hazard Intelligence & Navigation Infrastructure
+# 🚨 SirenRoute: Real-Time Hazard Intelligence & Navigation
 
-**SirenRoute** is a production-grade, community-driven civic technology and navigation platform designed to transform micro-road risks (potholes, accidents, flash floods, collapsed asphalt, open debris) into actionable driving intelligence.
+SirenRoute is a community-driven road safety and navigation project designed to help users identify and report road hazards such as potholes, accidents, waterlogging, damaged roads, and fallen debris.
 
-Alighed with **UN Sustainable Development Goals (SDG 3.6: Good Health & Road Safety, SDG 11.2: Sustainable Urban Mobility)**.
+The platform aims to turn community-submitted hazard information into useful travel insights through interactive maps, hazard reporting, route-risk analysis, and civic data tools.
 
----
+SirenRoute supports the goals of **UN Sustainable Development Goal 3.6** (road safety) and **SDG 11.2** (safe, accessible, and sustainable transport).
 
-## 🌟 Key Capabilities & Architecture
-
-### 1. 🛡️ Hazard-Aware Multi-Route Navigation & Live HUD
-- **Alternative Corridor Comparison**: Calculates multiple candidate driving paths using OSRM with live hazard collision checking.
-- **Live Turn-by-Turn Navigation Cockpit**: Real-time HUD overlay with maneuver cards (`Turn onto MG Road`), distance countdowns (`In 180 m` / `Now`), dynamic ETA clock, and speedometer.
-- **Dynamic Hazard Proximity Radar**: In-flight 150m radar proximity alert drops down pulsing threat alerts with synthesized radio voice warnings.
-- **Drive Simulation Engine**: Smooth road tracking with vehicle heading angle calculation and custom commuter vehicle icons (🏍️ Two-Wheeler, 🚗 Passenger Car, 🚚 Delivery Fleet).
-- **Intelligent Detour Recommendations**: Bypasses severe pothole clusters and submerged underpasses while calculating exact travel time trade-offs.
-
-### 2. 🔍 Google Maps-Style Autocomplete & Geolocation
-- **Proximity-Biased Search**: Correlates places near the driver first with right-aligned distance badges (`1.2 km`).
-- **Keyboard Navigation & Quick Chips**: Arrow key selection, Enter-to-route, input clear buttons ("X"), and one-click preset destination chips.
-- **Draggable Location Puck**: Blue GPS position puck can be dragged directly onto your street/house to lock exact coordinates.
-- **First-Party Geolocation**: `/api/locate-me` endpoint provides instant network geolocation without browser ad-blocker restrictions.
-
-### 3. 🔊 Radio-Style Audio & Voice Alerts
-- **Hands-Free Driver Safety**: Emits a dual-frequency synthesized radar chime (Web Audio API) followed by spoken road hazard warnings (Web Speech API).
-- **Configurable Distance Buffer**: Customize alert proximity (50m to 400m) with vehicle sensitivity presets.
-
-### 4. 🤖 Google Gemini 3.5 Flash AI Vision Verification
-- **Automated Evidence Analysis**: Inspects user-submitted incident photos in real time using active `gemini-3.5-flash` with cascade fallback.
-- **Categorization & Severity Rating**: Classifies potholes, floods, crashes, and fallen trees while discarding spam or indoor photos.
-- **Confidence Scoring & Auto-Verification**: Auto-marks hazards as verified when confidence $\ge 65\%$. Includes a smart simulated fallback when an API key is not configured.
-
-### 4. 🎁 Community Gamification & Partner Rewards
-- **Earn While Protecting**: Users earn **+50 Eco-Points** for verified hazard reports.
-- **Redeemable Demo Coupons**: Integrated discount catalog for local businesses:
-  - ☕ **Café Coffee Day**: Free Artisanal Brew (75 PTS)
-  - ⛽ **Shell Mobility**: 15% off fuel top-up (120 PTS)
-  - 🛵 **Castrol Auto Care**: Comprehensive two-wheeler inspection (150 PTS)
-  - 🛒 **Decathlon**: 20% off certified safety helmets (100 PTS)
-  - 🍔 **Burger King**: Free meal combo upgrade (60 PTS)
-- **Interactive Redemption Modal**: Displays coupon codes with one-click clipboard copying.
-
-### 5. 🏛️ Civic Road Analytics & Municipal Exports
-- **Hotspot Statistics**: Real-time KPIs on active threats, high-severity clusters, and verification rates.
-- **GIS-Ready GeoJSON Export**: Download spatial hazard datasets directly into ArcGIS, QGIS, or city planning software.
-- **Municipal CSV Export**: Downloadable reports for road maintenance and repair dispatch crews.
-- **Civic Resolution**: Mark hazards as repaired by municipal authorities.
-
-### 6. ⚙️ Production Settings & Vehicle Profiles
-- **Vehicle Presets**:
-  - 🛵 **Two-Wheeler Commuter** (Maximum sensitivity to potholes, loose gravel, and rain)
-  - 🚗 **Passenger Car** (Standard vehicle sensitivity)
-  - 🚚 **Last-Mile Delivery Fleet** (Prioritizes delivery corridors, bridge clearances, and closures)
-- **Map Themes**: Toggle between CartoDB Voyager, Dark Matter, and OpenStreetMap.
+> **Project status:** Some capabilities described below may be in development or demonstration-only. Route recommendations and hazard information should not be treated as a guarantee of road safety.
 
 ---
 
-## 🏗️ Project Layout
+## 🌟 Key Features
 
-```
+### 1. 🛡️ Hazard-Aware Navigation
+
+- Interactive map for viewing reported road hazards.
+- Hazard categories such as potholes, waterlogging, road damage, and other obstacles.
+- Route planning interface for entering a starting point and destination.
+- Planned route comparison using road-network data and hazard information.
+- Risk explanations intended to help users make more informed travel decisions.
+
+### 2. 🗺️ Interactive Map and Location Support
+
+- Interactive map powered by Leaflet.
+- OpenStreetMap map tiles.
+- Map markers for displaying hazard locations.
+- Hazard category filters.
+- Planned location search, autocomplete, and geolocation support.
+
+### 3. 📷 Community Hazard Reporting
+
+- Form for submitting road hazard details.
+- Hazard category, location, description, and photo input.
+- Photo preview and basic input validation.
+- Demonstration reports stored in browser local storage in the current frontend prototype.
+- Planned backend integration for persistent reports, status tracking, and community verification.
+
+### 4. 🔊 Audio and Voice Alerts
+
+- Planned proximity-based warnings for reported hazards.
+- Potential use of the Web Audio API for alert sounds.
+- Potential use of the Web Speech API for spoken warnings.
+
+### 5. 🤖 AI-Assisted Hazard Verification
+
+- Planned image analysis for identifying potential road hazards.
+- Intended classification of hazard types and severity.
+- Future integration with a vision-capable AI service, such as Google's Gemini API.
+- Confidence-based verification intended to help distinguish relevant reports from unrelated images.
+
+AI predictions can be inaccurate and should not be treated as definitive proof that a road is safe or unsafe.
+
+### 6. 🎁 Community Rewards
+
+- Proposed points for useful, verified community reports.
+- Planned reward catalogue and coupon redemption demonstration.
+- Potential incentives to encourage responsible participation in road safety reporting.
+
+Any displayed rewards or coupons are demonstration features unless actual partner agreements and redemption systems are implemented.
+
+### 7. 🏛️ Civic Analytics and Data Export
+
+Planned civic features include:
+
+- Statistics about reported hazards and their status.
+- Identification of areas with recurring road problems.
+- GeoJSON export for use with GIS software such as QGIS.
+- CSV export for reviewing and organizing road maintenance reports.
+- Hazard resolution tracking.
+
+### 8. ⚙️ Vehicle Profiles and Map Customization
+
+Potential future enhancements include:
+
+- Two-wheeler, passenger car, and delivery vehicle profiles.
+- Configurable hazard alert distances.
+- Alternative map themes.
+- Vehicle-specific route-risk preferences.
+
+---
+
+## 🧰 Technology Stack
+
+| Technology | Purpose |
+|---|---|
+| HTML | Web page structure |
+| CSS | Layout, styling, and responsive design |
+| JavaScript | Frontend interactions |
+| Leaflet | Interactive maps |
+| OpenStreetMap | Map tile data |
+| Python | Backend development |
+| Flask | Web server and API framework |
+| SQLite | Local database storage |
+| OSRM | Planned road routing integration |
+| Google Gemini API | Planned AI image analysis |
+| Git and GitHub | Version control and collaboration |
+
+The technologies listed as planned integrations should be considered future work until their implementation has been tested.
+
+---
+
+## 🏗️ Project Structure
+
+```text
 SirenRoute/
 ├── backend/
-│   ├── app.py                # Flask API, SQLite DB, Gemini AI Vision, Rewards, Civic Exports
-│   ├── requirements.txt      # Python dependencies (Flask, Pillow, google-genai, etc.)
-│   ├── sirenroute.db         # SQLite database storing hazards, votes, and rewards
-│   ├── uploads/              # Storage directory for verified hazard photos
-│   ├── .env.example          # Environment template for GEMINI_API_KEY
-│   └── .env                  # Local environment configuration
+│   ├── app.py
+│   ├── requirements.txt
+│   ├── database.py
+│   ├── risk.py
+│   ├── sirenroute.db
+│   └── uploads/
 ├── frontend/
-│   ├── index.html            # Production dashboard with 6 panels & Leaflet map
+│   ├── index.html
 │   ├── css/
-│   │   └── style.css         # High-tech dark cockpit UI styling & animations
+│   │   └── style.css
 │   └── js/
-│       ├── app.js            # Coordinator, vehicle modes, points balance, voice alert toggles
-│       ├── map.js            # Leaflet map, pulsing markers, tile switcher, polyline rendering
-│       ├── reports.js        # Hazard reporting, upvoting, rewards redemption, civic stats
-│       └── routes.js         # OSRM route comparison, hazard collisions, audio alerts
+│       ├── app.js
+│       ├── map.js
+│       ├── reports.js
+│       └── routes.js
+├── .gitignore
 └── README.md
 ```
 
+**Note:** The database and uploaded files are generated locally and should not be committed to GitHub. The exact project structure may change as the team integrates its modules.
+
 ---
 
-## 🚀 Quick Start Guide
+## 🚀 Getting Started
 
-### 1. Prerequisites
-- Python 3.10+
-- (Optional) Free Google Gemini API Key ([Get one here](https://aistudio.google.com/))
+### Prerequisites
 
-### 2. Start the Server
-Open a terminal in the project root:
-```powershell
-python backend/app.py
+- Python 3.10 or later, compatible with the project's dependencies.
+- Git.
+- A modern web browser.
+- Visual Studio Code or another code editor.
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Prathibha-n28/SirenRoute-safety-navigation-app-.git
+cd SirenRoute-safety-navigation-app-
 ```
-The server will start on **`http://localhost:5001`**.
 
-### 3. Open the Application
-Navigate to **[http://localhost:5001/](http://localhost:5001/)** or **[http://localhost:5001/app](http://localhost:5001/app)** in any web browser.
+### 2. Create and activate a virtual environment
+
+On Windows PowerShell:
+
+```powershell
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+### 3. Install dependencies
+
+```powershell
+py -m pip install -r backend/requirements.txt
+```
+
+### 4. Start the backend
+
+From the project root, run:
+
+```powershell
+py backend/app.py
+```
+
+If the Flask application starts successfully on port `5001`, open:
+
+- `http://127.0.0.1:5001/`
+- `http://127.0.0.1:5001/health`
+
+These URLs work only if the corresponding routes are implemented in the running backend. If the server reports an error or uses different routes, check the terminal output and backend code.
+
+### Frontend note
+
+The frontend currently includes a map and demonstration reporting functionality. Some features may work independently of the backend, and additional integration may be required for persistent reports and real route calculation.
 
 ---
 
 ## 📡 API Reference
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/health` / `/api/health` | Server diagnostics & Gemini AI configuration state |
-| `GET` | `/api/locate-me` | First-party network IP geolocation resolver |
-| `GET` | `/hazards` | List hazards (filters: `status`, `severity`, `hazard_type`, `resolved`) |
-| `POST` | `/hazards` | Submit a hazard report (with 15m geofenced duplicate clustering) |
-| `POST` | `/hazards/<id>/image` | Upload photo & trigger Gemini 3.5 Flash AI vision verification |
-| `POST` | `/hazards/<id>/vote` | Community confirmation upvote or downvote |
-| `POST` | `/hazards/<id>/resolve` | Mark hazard as resolved by municipal maintenance |
-| `GET` | `/rewards` | Fetch redeemable partner discount coupons |
-| `POST` | `/rewards/<id>/redeem` | Redeem a coupon and unlock discount promo code |
-| `GET` | `/civic/stats` | High-level municipal statistics and category breakdown |
-| `GET` | `/civic/export` | Download GIS GeoJSON or CSV data (`?format=geojson` or `?format=csv`) |
-| `POST` | `/demo/reset` | Reset demo data to the official Bangalore hazard corridor |
-| `POST` | `/routes/check-hazards`| Evaluate candidate route coordinates against active hazards |
+The following endpoints are intended for the backend. Confirm that each endpoint is implemented before relying on it.
+
+| Method | Endpoint | Intended purpose |
+|---|---|---|
+| GET | `/health` | Backend health check |
+| GET | `/api/health` | Alternative health check |
+| GET | `/api/locate-me` | Location lookup, if configured |
+| GET | `/hazards` | Retrieve hazard reports |
+| POST | `/hazards` | Submit a hazard report |
+| POST | `/hazards/<id>/image` | Upload a hazard photo |
+| POST | `/hazards/<id>/vote` | Record a community vote |
+| POST | `/hazards/<id>/resolve` | Mark a hazard as resolved |
+| GET | `/rewards` | Retrieve available rewards |
+| POST | `/rewards/<id>/redeem` | Redeem a reward |
+| GET | `/civic/stats` | Retrieve civic statistics |
+| GET | `/civic/export` | Export civic data |
+| POST | `/demo/reset` | Reset demonstration data |
+| POST | `/routes/check-hazards` | Evaluate route coordinates against reported hazards |
+
+The API list is a reference for intended functionality, not a guarantee that every endpoint is currently available.
+
+---
+
+## 🔐 Privacy and Security
+
+- Do not commit API keys, passwords, access tokens, or private configuration files.
+- Keep `.env` files out of version control.
+- Keep local databases, uploaded photos, and virtual environments out of GitHub unless there is a specific, safe reason to share them.
+- Use `.env.example` for documenting required configuration variable names without including real secrets.
+- Validate uploaded files and user input on the backend.
+- Avoid exposing precise personal location information unnecessarily.
+
+---
+
+## 🛣️ Future Enhancements
+
+- Connect frontend reporting forms to the Flask backend.
+- Display hazard reports retrieved from the database.
+- Implement and test actual route calculations and route-risk comparison.
+- Integrate and validate AI-assisted image analysis.
+- Add report status history and community verification.
+- Complete rewards and civic export workflows.
+- Improve accessibility, responsive design, and automated testing.
+
+---
+
+## 🌍 Project Vision
+
+SirenRoute aims to encourage safer travel by making road hazards easier to report, visualize, and understand. By combining community participation, interactive mapping, and data-driven tools, the project explores how civic technology can support better road awareness and urban mobility.
+
+**Disclaimer:** SirenRoute is a developing project. Hazard data may be incomplete, outdated, or inaccurate. Always follow traffic laws and official road advisories, and use your own judgment when travelling.
