@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SirenRoute — AI-Assisted, Hazard-Aware Navigation</title>
+    <meta name="description" content="Community-driven, algorithmically validated road hazard reporting and hazard-aware navigation infrastructure.">
+    <meta name="theme-color" content="#090d16">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="theme-dark">
+    <div class="app-layout">
+        <!-- Top Navbar -->
+        <header class="navbar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>Siren<span>Route</span></h1>
+                    <div class="brand-sub">
+                        <span class="brand-tagline">AI Hazard-Aware Navigation</span>
+                        <span class="live-pulse-badge"><span class="pulse-dot"></span> LIVE</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Center Stats & Toggles -->
+            <div class="navbar-center">
+                <div class="nav-pill" id="navVehiclePill" title="Current Vehicle Mode (Click to change in Settings)">
+                    <i class="fa-solid fa-motorcycle" id="navVehicleIcon"></i>
+                    <span id="navVehicleLabel">Two-Wheeler</span>
+                </div>
+                
+                <div class="nav-pill nav-audio-pill active" id="navAudioToggle" title="Toggle Radio-style Voice Alerts">
+                    <i class="fa-solid fa-volume-high" id="navAudioIcon"></i>
+                    <span id="navAudioLabel">Voice Alerts: ON</span>
+                </div>
+
+                <div class="nav-pill nav-points-pill" id="navPointsPill" title="Your Safety Points Balance">
+                    <i class="fa-solid fa-award"></i>
+                    <span id="navPointsCount">250</span> PTS
+                </div>
+
+                <div class="nav-pill nav-hazards-pill" id="navHazardsPill" title="Active Road Threats in Network">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span id="navActiveHazardsCount">0</span> Active Threats
+                </div>
+            </div>
+
+            <!-- Mobile & Sidebar Controls -->
+            <div class="navbar-actions">
+                <button id="toggleSidebarBtn" class="btn-icon" title="Toggle Sidebar">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Body -->
+        <div class="main-container">
+            <!-- Sidebar Navigation & Content -->
+            <aside class="sidebar" id="sidebar">
+                <!-- Navigation Tabs Bar -->
+                <nav class="sidebar-tabs">
+                    <button class="tab-btn active" data-tab="routesTab" title="Hazard-Aware Route Navigation">
+                        <i class="fa-solid fa-diamond-turn-right"></i>
+                        <span>Navigate</span>
+                    </button>
+                    <button class="tab-btn" data-tab="reportTab" title="Report Hazard with AI Vision">
+                        <i class="fa-solid fa-camera"></i>
+                        <span>Report</span>
+                    </button>
+                    <button class="tab-btn" data-tab="hazardsTab" title="Live Hazard Feed & Tracking">
+                        <i class="fa-solid fa-list-check"></i>
+                        <span>Hazards (<span id="tabHazardsCount">0</span>)</span>
+                    </button>
+                    <button class="tab-btn" data-tab="rewardsTab" title="Points & Demo Discount Coupons">
+                        <i class="fa-solid fa-gift"></i>
+                        <span>Rewards</span>
+                    </button>
+                    <button class="tab-btn" data-tab="civicTab" title="Civic Authority Road Analytics">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <span>Civic</span>
+                    </button>
+                    <button class="tab-btn" data-tab="settingsTab" title="Vehicle, Voice & Map Settings">
+                        <i class="fa-solid fa-gear"></i>
+                        <span>Settings</span>
+                    </button>
+                </nav>
+
+                <!-- TAB 1: ROUTE PLANNER & COMPARISON -->
+                <section class="tab-pane active" id="routesTab">
+                    <div class="pane-header">
+                        <div class="header-badge"><i class="fa-solid fa-shield-cat"></i> Safety-First Engine</div>
+                        <h2>Hazard-Aware Route Navigation</h2>
+                        <p>Evaluates road conditions, calculates alternative detours, and issues audio alerts before danger zones.</p>
+                    </div>
+
+                    <!-- Location Precision & GPS Access Banner -->
+                    <div class="location-status-banner" id="locationStatusBanner">
+                        <div class="loc-banner-left">
+                            <i class="fa-solid fa-satellite-dish" id="locStatusIcon"></i>
+                            <div class="loc-banner-text">
+                                <strong id="locStatusTitle">Network IP Location Active</strong>
+                                <span id="locStatusSub">Tap below to grant high-precision GPS or adjust pin on map</span>
+                            </div>
+                        </div>
+                        <div class="loc-banner-actions">
+                            <button type="button" class="btn-banner-action" id="enableGpsBtn" title="Request browser GPS satellite fix">
+                                <i class="fa-solid fa-crosshairs"></i> Enable GPS
+                            </button>
+                            <button type="button" class="btn-banner-action btn-banner-secondary" id="adjustPinBtn" title="Click on map to position your location pin">
+                                <i class="fa-solid fa-map-pin"></i> Pick on Map
+                            </button>
+                        </div>
+                    </div>
+
+                    <form id="routeForm" class="route-form">
+                        <div class="form-group">
+                            <label for="routeStart">
+                                <i class="fa-solid fa-location-dot start-icon"></i> Origin / Start Location
+                            </label>
+                            <div class="input-search-wrapper">
+                                <div class="input-with-action">
+                                    <input type="text" id="routeStart" placeholder="Search address, landmark or Lat, Lon..." autocomplete="off" required>
+                                    <button type="button" class="btn-clear-field" id="clearStartInputBtn" title="Clear origin" style="display:none;">
+                                        <i class="fa-solid fa-circle-xmark"></i>
+                                    </button>
+                                    <button type="button" id="useCurrentLocationBtn" class="btn-inline" title="Use Current GPS Location">
+                                        <i class="fa-solid fa-crosshairs"></i>
+                                    </button>
+                                </div>
+                                <div id="startSuggestions" class="autocomplete-dropdown" style="display: none;"></div>
+                            </div>
+                        </div>
+
+                        <div class="route-swap-container">
+                            <button type="button" id="swapLocationsBtn" class="btn-icon-subtle" title="Swap Origin & Destination">
+                                <i class="fa-solid fa-arrow-down-up-across-line"></i>
+                            </button>
+                            <span class="swap-hint">Swap</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="routeEnd">
+                                <i class="fa-solid fa-flag-checkered end-icon"></i> Destination Point
+                            </label>
+                            <div class="input-search-wrapper">
+                                <div class="input-with-action">
+                                    <input type="text" id="routeEnd" placeholder="Search destination, landmark or Lat, Lon..." autocomplete="off" required>
+                                    <button type="button" class="btn-clear-field" id="clearEndInputBtn" title="Clear destination" style="display:none;">
+                                        <i class="fa-solid fa-circle-xmark"></i>
+                                    </button>
+                                    <button type="button" id="pickDestOnMapBtn" class="btn-inline" title="Click destination on map">
+                                        <i class="fa-solid fa-map-pin"></i>
+                                    </button>
+                                </div>
+                                <div id="endSuggestions" class="autocomplete-dropdown" style="display: none;"></div>
+                            </div>
+
+                            <!-- Quick Preset Destination Chips -->
+                            <div class="quick-dest-chips" id="quickDestChips">
+                                <span class="chip-label">Suggestions:</span>
+                                <button type="button" class="btn-quick-chip" data-dest="Kempegowda International Airport"><i class="fa-solid fa-plane"></i> Airport</button>
+                                <button type="button" class="btn-quick-chip" data-dest="MG Road Metro Station"><i class="fa-solid fa-train-subway"></i> MG Road</button>
+                                <button type="button" class="btn-quick-chip" data-dest="Koramangala 5th Block"><i class="fa-solid fa-city"></i> Koramangala</button>
+                                <button type="button" class="btn-quick-chip" data-dest="Whitefield ITPL"><i class="fa-solid fa-building"></i> Whitefield</button>
+                            </div>
+                        </div>
+
+                        <!-- Quick Demo Scenarios -->
+                        <div class="scenario-shortcuts">
+                            <span class="shortcuts-label">Demo Routes:</span>
+                            <button type="button" class="btn-chip" id="demoRoutePotholeBtn">
+                                🕳️ Pothole Corridor
+                            </button>
+                            <button type="button" class="btn-chip" id="demoRouteFloodBtn">
+                                🌊 Underpass Flooding
+                            </button>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" id="calculateRouteBtn" class="btn btn-primary btn-block">
+                                <i class="fa-solid fa-route"></i> Calculate & Compare Routes
+                            </button>
+                            <button type="button" id="clearRouteBtn" class="btn btn-secondary btn-block" style="display:none;">
+                                <i class="fa-solid fa-xmark"></i> Clear Active Route
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Route Results & Alternatives Comparison Panel -->
+                    <div id="routeResults" class="route-results-card" style="display: none;">
+                        <div class="route-card-header">
+                            <div>
+                                <span class="route-title">Available Corridors</span>
+                                <span class="route-sub">Compare safety scores & travel duration</span>
+                            </div>
+                            <span id="routeSafetyBadge" class="safety-badge safe">Safe Path</span>
+                        </div>
+
+                        <!-- Start Live Turn-by-Turn Navigation Button -->
+                        <div class="start-nav-wrapper">
+                            <button type="button" id="startLiveNavBtn" class="btn btn-primary btn-block btn-start-nav">
+                                <i class="fa-solid fa-diamond-turn-right"></i> Start Live Turn-by-Turn Navigation
+                            </button>
+                        </div>
+
+                        <!-- Route Comparison Cards (Fastest vs Safest) -->
+                        <div class="route-alternatives-grid" id="routeAlternativesGrid">
+                            <!-- Populated dynamically with Route 1 and Route 2 cards -->
+                        </div>
+
+                        <!-- AI Recommendation Banner -->
+                        <div class="ai-recommendation-banner" id="routeRecommendationBanner">
+                            <div class="rec-icon"><i class="fa-solid fa-circle-check"></i></div>
+                            <div class="rec-content">
+                                <strong id="recTitle">Recommended Corridor: Route 2 (Safe Detour)</strong>
+                                <p id="recDescription">Bypasses 2 severe potholes and active waterlogging on primary artery.</p>
+                            </div>
+                        </div>
+
+                        <!-- Audio Alert Demo Trigger -->
+                        <div class="audio-alert-preview-card">
+                            <div class="audio-card-info">
+                                <i class="fa-solid fa-radio"></i>
+                                <div>
+                                    <strong>Radio-Style Voice Alerts</strong>
+                                    <span>Hands-free audio hazard notifications for drivers</span>
+                                </div>
+                            </div>
+                            <button type="button" id="testAudioAlertBtn" class="btn btn-sm btn-audio">
+                                <i class="fa-solid fa-volume-high"></i> Play Alert
+                            </button>
+                        </div>
+
+                        <!-- Threat Details on Selected Route -->
+                        <div class="threats-section">
+                            <span class="threats-title">
+                                <i class="fa-solid fa-triangle-exclamation"></i> Hazards Detected Along Path
+                            </span>
+                            <div id="routeHazardsList" class="route-hazards-list">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <!-- TAB 2: REPORT HAZARD & GEMINI AI VISION -->
+                <section class="tab-pane" id="reportTab">
+                    <div class="pane-header">
+                        <div class="header-badge"><i class="fa-solid fa-brain"></i> Powered by Gemini 3.5 Flash</div>
+                        <h2>Report Road Hazard</h2>
+                        <p>Upload a photo of the incident. Google Gemini AI vision automatically classifies the hazard and calculates severity.</p>
+                    </div>
+
+                    <form id="hazardForm" class="hazard-form">
+                        <div class="form-group">
+                            <label for="hazardType">Hazard Category</label>
+                            <select id="hazardType" required>
+                                <option value="pothole">🕳️ Pothole / Severe Road Depression</option>
+                                <option value="accident">💥 Vehicle Collision / Traffic Crash</option>
+                                <option value="flooding">🌊 Waterlogging / Flash Flooding</option>
+                                <option value="road_damage">🚧 Road Damage / Asphalt Collapse</option>
+                                <option value="debris">🌲 Fallen Tree / Loose Debris / Oil Spill</option>
+                                <option value="closure">⛔ Road Closure / Construction Barricade</option>
+                                <option value="other">⚠️ Unmarked Road Hazard</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Reported Severity</label>
+                            <div class="severity-selector">
+                                <label class="severity-option low">
+                                    <input type="radio" name="severity" value="low">
+                                    <span>Low (Minor)</span>
+                                </label>
+                                <label class="severity-option medium">
+                                    <input type="radio" name="severity" value="medium" checked>
+                                    <span>Medium (Caution)</span>
+                                </label>
+                                <label class="severity-option high">
+                                    <input type="radio" name="severity" value="high">
+                                    <span>High (Severe Risk)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hazardDescription">Incident Description</label>
+                            <textarea id="hazardDescription" rows="3" placeholder="Describe lane impact, depth, obstacles, or night visibility risks..." required></textarea>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group col">
+                                <label for="hazardLat">Latitude</label>
+                                <input type="number" step="any" id="hazardLat" placeholder="e.g. 12.9716" required>
+                            </div>
+                            <div class="form-group col">
+                                <label for="hazardLon">Longitude</label>
+                                <input type="number" step="any" id="hazardLon" placeholder="e.g. 77.5946" required>
+                            </div>
+                        </div>
+
+                        <div class="form-helpers">
+                            <button type="button" id="useGpsForHazardBtn" class="btn-text">
+                                <i class="fa-solid fa-location-crosshairs"></i> Use GPS
+                            </button>
+                            <button type="button" id="pickHazardOnMapBtn" class="btn-text">
+                                <i class="fa-solid fa-hand-pointer"></i> Pick On Map
+                            </button>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Upload Photographic Evidence</label>
+                            <div class="upload-dropzone" id="uploadDropzone">
+                                <input type="file" id="hazardImageInput" accept="image/jpeg,image/png,image/webp">
+                                <div class="dropzone-content" id="dropzoneContent">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                                    <span>Click or drag photo here</span>
+                                    <span class="dropzone-hint">JPG, PNG, WEBP (Auto-verified by Gemini AI Vision)</span>
+                                </div>
+                                <div class="dropzone-preview" id="dropzonePreview" style="display: none;">
+                                    <img id="imagePreviewImg" src="" alt="Hazard Evidence Preview">
+                                    <button type="button" id="removeImageBtn" class="btn-remove-img" title="Remove image">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" id="submitHazardBtn" class="btn btn-hazard btn-block">
+                            <i class="fa-solid fa-paper-plane"></i> Submit & Verify Hazard (+50 PTS)
+                        </button>
+                    </form>
+
+                    <!-- Real-time Gemini AI Verification Output Card -->
+                    <div id="aiVerificationCard" class="ai-result-card" style="display:none;">
+                        <div class="ai-card-badge">
+                            <i class="fa-solid fa-brain"></i> Gemini 3.5 Flash Vision Verification
+                        </div>
+                        <div id="aiAnalysisBody" class="ai-analysis-text">
+                            Verifying image...
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 3: LIVE HAZARD FEED & COMMUNITY TRACKING -->
+                <section class="tab-pane" id="hazardsTab">
+                    <div class="pane-header">
+                        <div class="header-badge"><i class="fa-solid fa-users"></i> Community Network</div>
+                        <h2>Live Hazard Tracking Feed</h2>
+                        <div class="hazards-filter-bar">
+                            <input type="text" id="hazardSearchInput" class="filter-search-input" placeholder="Search hazards (pothole, MG Road)...">
+                            <select id="statusFilter" class="filter-select">
+                                <option value="all">All Reports</option>
+                                <option value="verified">Verified Only</option>
+                                <option value="pending">Pending Review</option>
+                                <option value="rejected">Rejected / Spam</option>
+                            </select>
+                            <select id="severityFilter" class="filter-select">
+                                <option value="all">All Severities</option>
+                                <option value="high">High Severity</option>
+                                <option value="medium">Medium Severity</option>
+                                <option value="low">Low Severity</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="hazardsListContainer" class="hazards-cards-list">
+                        <!-- Populated dynamically -->
+                    </div>
+                </section>
+
+                <!-- TAB 4: REWARDS, POINTS & DEMO COUPONS -->
+                <section class="tab-pane" id="rewardsTab">
+                    <div class="pane-header">
+                        <div class="header-badge"><i class="fa-solid fa-award"></i> Community Incentives</div>
+                        <h2>Rewards & Partner Coupons</h2>
+                        <p>Earn Eco-Points for verified hazard reports. Redeem points for discounts at local cafés, fuel stations, and bike service centers.</p>
+                    </div>
+
+                    <!-- User Profile Card -->
+                    <div class="user-rewards-card">
+                        <div class="rewards-profile-top">
+                            <div class="avatar-box">
+                                <i class="fa-solid fa-user-shield"></i>
+                            </div>
+                            <div class="profile-info">
+                                <h3>Alex Morgan</h3>
+                                <div class="rank-badge"><i class="fa-solid fa-shield"></i> Level 2: Road Sentinel</div>
+                            </div>
+                            <div class="points-badge-large">
+                                <span class="points-val" id="profilePointsVal">250</span>
+                                <span class="points-sub">Points Available</span>
+                            </div>
+                        </div>
+
+                        <div class="profile-progress-bar">
+                            <div class="progress-fill" style="width: 65%;"></div>
+                        </div>
+                        <div class="progress-labels">
+                            <span>Level 2: 250 PTS</span>
+                            <span>Level 3 (City Guardian): 400 PTS</span>
+                        </div>
+
+                        <div class="profile-impact-stats">
+                            <div class="impact-stat">
+                                <span class="stat-number" id="statsReportCount">5</span>
+                                <span class="stat-name">Reports Filed</span>
+                            </div>
+                            <div class="impact-stat">
+                                <span class="stat-number" id="statsVerifiedCount">4</span>
+                                <span class="stat-name">AI Verified</span>
+                            </div>
+                            <div class="impact-stat">
+                                <span class="stat-number">148+</span>
+                                <span class="stat-name">Drivers Protected</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Coupons Catalog -->
+                    <div class="rewards-catalog-section">
+                        <h3><i class="fa-solid fa-ticket"></i> Redeemable Partner Offers</h3>
+                        <div class="coupons-grid" id="couponsGridContainer">
+                            <!-- Populated dynamically from /rewards -->
+                        </div>
+                    </div>
+                </section>
+                <!-- TAB 5: CIVIC MUNICIPAL DASHBOARD & ANALYTICS -->
+                <section class="tab-pane" id="civicTab">
+                    <div class="pane-header">
+                        <div class="header-badge"><i class="fa-solid fa-landmark"></i> SDG 3.6 & SDG 11.2 Aligned</div>
+                        <h2>Civic Road Analytics</h2>
+                        <p>Spatial hazard hotspot analytics and GIS exports for municipal repair prioritization.</p>
+                    </div>
+
+                    <div class="civic-kpi-grid">
+                        <div class="kpi-card">
+                            <span class="kpi-label">Total Hazards</span>
+                            <span class="kpi-value" id="civicTotalHazards">0</span>
+                            <span class="kpi-trend"><i class="fa-solid fa-arrow-up"></i> Community crowd</span>
+                        </div>
+                        <div class="kpi-card urgent">
+                            <span class="kpi-label">Urgent Critical</span>
+                            <span class="kpi-value" id="civicUrgentCount">0</span>
+                            <span class="kpi-trend text-danger">Requires immediate repair</span>
+                        </div>
+                        <div class="kpi-card success">
+                            <span class="kpi-label">AI Verification Rate</span>
+                            <span class="kpi-value" id="civicVerifyRate">0%</span>
+                            <span class="kpi-trend text-success"><i class="fa-solid fa-check-double"></i> Gemini 3.5 Flash</span>
+                        </div>
+                        <div class="kpi-card info">
+                            <span class="kpi-label">Repaired / Resolved</span>
+                            <span class="kpi-value" id="civicResolvedCount">0</span>
+                            <span class="kpi-trend text-info">Civic action completed</span>
+                        </div>
+                    </div>
+
+                    <!-- Municipal Export Actions -->
+                    <div class="civic-actions-card">
+                        <h3><i class="fa-solid fa-file-export"></i> Municipal Data Export</h3>
+                        <p>Export validated spatial hazard data for integration with city GIS, ArcGIS, or maintenance dispatch crews.</p>
+                        <div class="export-btn-group">
+                            <button type="button" class="btn btn-secondary" id="exportGeoJsonBtn">
+                                <i class="fa-solid fa-map-location-dot"></i> Export GeoJSON (GIS)
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="exportCsvBtn">
+                                <i class="fa-solid fa-file-csv"></i> Export CSV Spreadsheet
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Hazard Type Breakdown -->
+                    <div class="hazard-breakdown-card">
+                        <h3><i class="fa-solid fa-chart-column"></i> Hazard Category Distribution</h3>
+                        <div class="breakdown-list" id="civicTypeBreakdown">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 6: SETTINGS & CONFIGURATION -->
+                <section class="tab-pane" id="settingsTab">
+                    <div class="pane-header">
+                        <div class="header-badge"><i class="fa-solid fa-sliders"></i> System Preferences</div>
+                        <h2>Application Settings</h2>
+                        <p>Customize your vehicle safety profile, audio alert behavior, map display, and Gemini API configuration.</p>
+                    </div>
+
+                    <div class="settings-form">
+                        <!-- System Health & Diagnostics (Moved from Navbar) -->
+                        <div class="settings-card diagnostics-card">
+                            <div class="diagnostics-header">
+                                <div>
+                                    <h3><i class="fa-solid fa-heart-pulse"></i> Service Health & Diagnostics</h3>
+                                    <p class="settings-sub">Real-time status of backend microservices, vision models, and database.</p>
+                                </div>
+                                <button type="button" class="btn btn-secondary btn-sm" id="runDiagnosticsBtn">
+                                    <i class="fa-solid fa-arrows-rotate"></i> Ping Status
+                                </button>
+                            </div>
+                            <div class="diagnostics-grid">
+                                <div class="diag-item" id="diagBackendItem">
+                                    <div class="diag-icon-box"><i class="fa-solid fa-server"></i></div>
+                                    <div class="diag-info">
+                                        <strong>Flask REST API</strong>
+                                        <span class="diag-status" id="diagBackendStatus"><span class="status-indicator"></span> Online (Port 5001)</span>
+                                    </div>
+                                    <span class="diag-badge text-success" id="diagBackendPing">< 10ms</span>
+                                </div>
+
+                                <div class="diag-item" id="diagAiItem">
+                                    <div class="diag-icon-box"><i class="fa-solid fa-brain"></i></div>
+                                    <div class="diag-info">
+                                        <strong>Google Gemini AI Vision</strong>
+                                        <span class="diag-status" id="diagAiStatus">Gemini 3.5 Flash (Ready)</span>
+                                    </div>
+                                    <span class="diag-badge text-ai" id="diagAiBadge">Active</span>
+                                </div>
+
+                                <div class="diag-item">
+                                    <div class="diag-icon-box"><i class="fa-solid fa-database"></i></div>
+                                    <div class="diag-info">
+                                        <strong>SQLite 3 Storage</strong>
+                                        <span class="diag-status">sirenroute.db</span>
+                                    </div>
+                                    <span class="diag-badge text-success">Healthy</span>
+                                </div>
+
+                                <div class="diag-item">
+                                    <div class="diag-icon-box"><i class="fa-solid fa-map-location-dot"></i></div>
+                                    <div class="diag-info">
+                                        <strong>OSRM Driving Service</strong>
+                                        <span class="diag-status">Multi-Corridor Engine</span>
+                                    </div>
+                                    <span class="diag-badge text-info">Connected</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Vehicle Mode -->
+                        <div class="settings-card">
+                            <h3><i class="fa-solid fa-car-side"></i> Commuter Vehicle Profile</h3>
+                            <p class="settings-sub">Tailors hazard sensitivity and route warnings to your transport type.</p>
+                            
+                            <div class="vehicle-options">
+                                <label class="vehicle-card active" data-vehicle="two_wheeler">
+                                    <input type="radio" name="vehicleMode" value="two_wheeler" checked>
+                                    <div class="vehicle-card-content">
+                                        <i class="fa-solid fa-motorcycle"></i>
+                                        <strong>Two-Wheeler Commuter</strong>
+                                        <span>Highest sensitivity. Alerts on potholes, waterlogging, loose gravel, and night hazards.</span>
+                                    </div>
+                                </label>
+                                <label class="vehicle-card" data-vehicle="car">
+                                    <input type="radio" name="vehicleMode" value="car">
+                                    <div class="vehicle-card-content">
+                                        <i class="fa-solid fa-car"></i>
+                                        <strong>Passenger Car</strong>
+                                        <span>Standard sensitivity for passenger vehicles and sedans.</span>
+                                    </div>
+                                </label>
+                                <label class="vehicle-card" data-vehicle="logistics">
+                                    <input type="radio" name="vehicleMode" value="logistics">
+                                    <div class="vehicle-card-content">
+                                        <i class="fa-solid fa-truck-fast"></i>
+                                        <strong>Last-Mile Delivery Fleet</strong>
+                                        <span>Prioritizes road blockades, underpass clearances, and commercial delivery timelines.</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Audio Voice Alerts -->
+                        <div class="settings-card">
+                            <h3><i class="fa-solid fa-volume-high"></i> Audio & Voice Alerts</h3>
+                            <p class="settings-sub">Hands-free radio alerts for driving safety without screen distraction.</p>
+
+                            <div class="toggle-row">
+                                <div>
+                                    <strong>Enable Voice Alerts</strong>
+                                    <span>Spoken voice warnings before reaching detected hazards</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="settingVoiceEnabled" checked>
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+
+                            <div class="toggle-row">
+                                <div>
+                                    <strong>Radar Alert Chime</strong>
+                                    <span>Synthesized audio tone prior to voice announcement</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="settingChimeEnabled" checked>
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+
+                            <div class="slider-group">
+                                <label for="settingAlertDistance">Hazard Warning Distance: <span id="distVal">150</span> meters</label>
+                                <input type="range" id="settingAlertDistance" min="50" max="400" step="25" value="150">
+                            </div>
+
+                            <button type="button" id="testVoiceBtn" class="btn btn-secondary btn-sm" style="margin-top: 8px;">
+                                <i class="fa-solid fa-play"></i> Test Voice Announcement
+                            </button>
+                        </div>
+
+                        <!-- Map Style -->
+                        <div class="settings-card">
+                            <h3><i class="fa-solid fa-map"></i> Map Tile Source</h3>
+                            <select id="settingMapTheme" class="filter-select" style="width: 100%; margin-top: 6px;">
+                                <option value="google">Google Maps (Streets / Highways - Default)</option>
+                                <option value="google_satellite">Google Maps (Satellite / Hybrid)</option>
+                                <option value="google_terrain">Google Maps (Terrain)</option>
+                                <option value="dark">CartoDB Dark Matter (Ultra Dark)</option>
+                                <option value="osm">OpenStreetMap Standard</option>
+                            </select>
+                        </div>
+
+                        <!-- Gemini AI Vision Key -->
+                        <div class="settings-card">
+                            <h3><i class="fa-solid fa-key"></i> Google Gemini API Key</h3>
+                            <p class="settings-sub">Enter your Gemini API key to activate live vision verification, or leave blank to use the built-in simulator.</p>
+                            <div class="input-with-action" style="margin-top: 8px;">
+                                <input type="password" id="settingGeminiKey" placeholder="AIzaSy...">
+                                <button type="button" id="saveGeminiKeyBtn" class="btn btn-primary btn-sm">Save Key</button>
+                            </div>
+                        </div>
+
+                        <!-- Demo Reset -->
+                        <div class="settings-card danger-zone">
+                            <h3><i class="fa-solid fa-rotate-left"></i> Demo Data Controls</h3>
+                            <p class="settings-sub">Reset hazards to the official pitch deck demonstration scenario (Bangalore Pothole & Flood Corridor).</p>
+                            <button type="button" id="resetDemoBtn" class="btn btn-secondary btn-sm" style="margin-top: 8px;">
+                                <i class="fa-solid fa-arrows-rotate"></i> Reload Demo Scenario
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            </aside>
+
+            <!-- Map Viewport -->
+            <main class="map-viewport">
+                <div id="map" class="map-container"></div>
+
+                <!-- Live Turn-by-Turn Navigation HUD Overlay -->
+                <div id="liveNavHud" class="live-nav-hud" style="display: none;">
+                    <!-- Top Turn Instruction Card (Google Maps / Waze HUD style) -->
+                    <div class="nav-hud-top">
+                        <div class="nav-turn-card">
+                            <div class="nav-turn-icon-box" id="navManeuverIconBox">
+                                <i class="fa-solid fa-arrow-up" id="navManeuverIcon"></i>
+                            </div>
+                            <div class="nav-turn-details">
+                                <div class="nav-turn-distance" id="navTurnDistance">In 350 m</div>
+                                <div class="nav-turn-instruction" id="navTurnInstruction">Head northeast on Mahatma Gandhi Road</div>
+                            </div>
+                            <button type="button" class="nav-voice-btn" id="navVoiceMuteBtn" title="Mute/Unmute Radio Voice Guidance">
+                                <i class="fa-solid fa-volume-high" id="navVoiceMuteIcon"></i>
+                            </button>
+                        </div>
+
+                        <!-- Dynamic Approaching Hazard Alert Banner -->
+                        <div id="navHazardAlertBanner" class="nav-hazard-alert" style="display: none;">
+                            <div class="nav-hazard-pulse-icon">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                            <div class="nav-hazard-alert-text">
+                                <strong id="navAlertHazardTitle">Hazard in 120m!</strong>
+                                <span id="navAlertHazardDesc">Deep Pothole reported ahead. Reduce speed immediately.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Navigation Status Bar (ETA, Distance, Speed, Controls) -->
+                    <div class="nav-hud-bottom">
+                        <div class="nav-stat-group">
+                            <div class="nav-stat-val text-primary" id="navEtaTime">14 min</div>
+                            <div class="nav-stat-sub">Remaining</div>
+                        </div>
+                        <div class="nav-stat-group">
+                            <div class="nav-stat-val" id="navRemainingDist">4.8 km</div>
+                            <div class="nav-stat-sub">Distance</div>
+                        </div>
+                        <div class="nav-stat-group">
+                            <div class="nav-stat-val text-success" id="navArrivalClock">09:35 PM</div>
+                            <div class="nav-stat-sub">ETA</div>
+                        </div>
+                        <div class="nav-stat-group">
+                            <div class="nav-speed-badge" id="navSpeedDisplay">42 km/h</div>
+                            <div class="nav-stat-sub">Speed</div>
+                        </div>
+                        <div class="nav-hud-actions">
+                            <button type="button" class="btn-nav-action btn-sim-toggle" id="toggleDriveSimBtn" title="Play / Pause Drive Simulation">
+                                <i class="fa-solid fa-play" id="simPlayPauseIcon"></i>
+                                <span id="simPlayPauseText">Drive</span>
+                            </button>
+                            <button type="button" class="btn-nav-action btn-exit-nav" id="exitNavBtn" title="Exit Live Navigation">
+                                <i class="fa-solid fa-xmark"></i> End
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Floating Controls Overlay -->
+                <div class="map-floating-controls">
+                    <button id="locateMeBtn" class="btn-float" title="Center on My Location">
+                        <i class="fa-solid fa-crosshairs"></i>
+                    </button>
+                    <button id="refreshHazardsBtn" class="btn-float" title="Refresh Live Hazards">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                    </button>
+                    <button id="quickReportBtn" class="btn-float btn-float-hazard" title="Report Hazard at Map Center">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </div>
+
+                <!-- Map Legend Overlay -->
+                <div class="map-legend">
+                    <div class="legend-item"><span class="legend-dot high"></span> High Threat</div>
+                    <div class="legend-item"><span class="legend-dot medium"></span> Moderate</div>
+                    <div class="legend-item"><span class="legend-dot low"></span> Low</div>
+                    <div class="legend-item"><span class="legend-dot safe"></span> Safe Route</div>
+                </div>
+
+                <!-- Map Picker Prompt Banner -->
+                <div id="mapPickerOverlay" class="map-picker-banner" style="display: none;">
+                    <div class="picker-banner-content">
+                        <i class="fa-solid fa-crosshairs"></i>
+                        <span id="pickerPromptText">Click anywhere on the map to set location</span>
+                        <button type="button" id="cancelPickerBtn" class="btn-cancel-picker">Cancel</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Coupon Redemption Modal -->
+    <div id="couponModal" class="modal-overlay" style="display: none;">
+        <div class="modal-card">
+            <button class="modal-close-btn" id="closeCouponModalBtn"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-icon-badge"><i class="fa-solid fa-gift"></i></div>
+            <h2 id="modalCouponTitle">Coupon Title</h2>
+            <p id="modalCouponPartner" class="modal-partner">Partner: Brand Name</p>
+            <p id="modalCouponDesc" class="modal-desc">Description of discount offer</p>
+            
+            <div class="coupon-code-box">
+                <span class="coupon-label">Your Discount Promo Code:</span>
+                <div class="code-display">
+                    <span id="modalDiscountCode">CODE123</span>
+                    <button type="button" id="copyCodeBtn" class="btn-copy" title="Copy Promo Code">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-footer-note">
+                <i class="fa-solid fa-shield-check"></i> Show this promo code at checkout or apply in the partner app.
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- App Modules -->
+    <script src="js/map.js"></script>
+    <script src="js/reports.js"></script>
+    <script src="js/routes.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.py[cod]
+.DS_Store
+.env
+*.env
+backend/.env
+backend/uploads/
+backend/fake.jpg
+backend/image.png
+*.log
+.vscode/
+*.sqlite
+backend/sirenroute.db
